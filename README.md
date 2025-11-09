@@ -21,6 +21,8 @@ This project uses channel data sourced from Matt Huisman's website: https://www.
 
 ## Usage
 
+Go to https://nksoft.github.io/Australia-IPTV/
+
 1. Select your region from the dropdown in the top right
 2. Browse the channel list on the right
 3. Click on any channel to start streaming
