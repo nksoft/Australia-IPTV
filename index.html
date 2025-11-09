@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Australia IPTV</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-blue': '#1e40af',
+                        'brand-light': '#f3f4f6',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Load HLS.js for robust M3U8 playback -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+</head>
+<body class="min-h-screen">
+
+    <div id="app" class="p-4 md:p-8">
+
+        <!-- HEADER AND REGION SELECTOR -->
+        <header class="mb-6 md:mb-8 flex justify-between items-center">
+            <div class="text-left">
+                <h1 class="text-2xl md:text-3xl font-bold text-white mb-1">AU TV Stream Player</h1>
+                <p class="text-brand-light text-sm">Now playing channels for: <span id="current-region-display" class="font-semibold text-white">Melbourne</span></p>
+            </div>
+
+            <!-- Region Dropdown -->
+            <div class="relative">
+                <label for="region-select" class="sr-only">Select Region</label>
+                <select id="region-select" class="block w-full rounded-lg border-gray-700 bg-gray-700/50 py-2 pl-3 pr-10 text-white shadow-sm focus:border-brand-blue focus:ring-brand-blue sm:text-sm appearance-none cursor-pointer">
+                    <!-- Options populated by JS -->
+                </select>
+                <!-- Custom Down Arrow for Aesthetics -->
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Layout: Grid for Desktop, Stacked for Mobile -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 h-[calc(100vh-256px)] max-h-[900px]">
+
+            <!-- Video Player Column (Left/Top) -->
+            <div class="md:col-span-2 lg:col-span-3 bg-gray-900 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+
+                <!-- Video Element -->
+                <div class="w-full aspect-video overflow-hidden">
+                    <video id="video-player" controls class="w-full h-full object-contain bg-black" poster="https://placehold.co/1920x1080/1f2937/d1d5db?text=Select+A+Channel+to+Start+Playback"></video>
+                </div>
+
+                <!-- Current Channel Display -->
+                <div class="p-4 bg-gray-800 border-t border-gray-700">
+                    <div id="combined-info-display" class="text-white text-sm"></div>
+                    <h2 id="current-channel-name" class="hidden"></h2>
+                    <div id="current-program-info" class="hidden"></div>
+                    <p id="current-stream-url" class="hidden"></p>
+                </div>
+            </div>
+
+            <!-- Playlist Column (Right/Bottom) -->
+            <div class="md:col-span-1 lg:col-span-2 bg-gray-800 rounded-xl shadow-xl overflow-hidden flex flex-col relative">
+                <div class="p-4 border-b border-gray-700 sticky top-0 bg-gray-800 z-10">
+                    <input type="text" id="search-input" class="w-full bg-gray-700 text-white rounded-lg px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-brand-blue" placeholder="Search channels...">
+                </div>
+                <div id="playlist" class="flex-grow overflow-y-auto playlist-scroll p-2 space-y-1 relative">
+                    <!-- Playlist Items will be injected here -->
+                    <div id="loading-indicator" class="p-4 text-center text-gray-400">Loading channels...</div>
+                    <div id="error-message" class="hidden p-4 text-center text-red-400 font-medium"></div>
+                </div>
+                <!-- Scroll to Top Button -->
+                <button id="scroll-to-top-btn" class="hidden absolute bottom-4 right-4 bg-brand-blue text-white p-3 rounded-full shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 z-50">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                    </svg>
+                </button>
+            </div>
+
+        </div>
+        <!-- FOOTER: Attribution to Matt Huisman -->
+        <footer class="mt-6 pt-4 text-center text-xs text-gray-500 border-t border-gray-700/50">
+            Thank you Matt Huisman for providing the data sources for this page.
+            <a href="https://www.matthuisman.nz/2017/07/australia-iptv-epg-files.html" target="_blank" class="text-brand-light hover:text-white underline">View Data Source Information</a>
+        </footer>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

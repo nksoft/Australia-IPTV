@@ -13,20 +13,11 @@ A simple, modern website for streaming live TV channels in Australia.
 
 This project uses channel data sourced from Matt Huisman's website: https://www.matthuisman.nz/2017/07/australia-iptv-epg-files.html
 
-All channel links and metadata are provided by Matt Huisman's IPTV service at https://i.mjh.nz/
-
 ## Technology Stack
 
-- React
+- Basic HTML
 - HLS.js for video streaming
 - CSS for styling
-
-## Getting Started
-
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Start the development server: `npm start`
-4. Open http://localhost:3000 in your browser
 
 ## Usage
 
