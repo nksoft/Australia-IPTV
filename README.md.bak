@@ -17,7 +17,7 @@ This project uses channel data sourced from Matt Huisman's website: https://www.
 
 - Basic HTML and JavaScript
 - HLS.js for video streaming
-- CSS for styling (Tailwind)
+- CSS for styling
 
 ## Usage
 
