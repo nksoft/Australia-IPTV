@@ -1,0 +1,25 @@
+{
+  "name": "australia-iptv",
+  "version": "1.0.0",
+  "description": "A simple, modern website for streaming live TV channels in Australia.",
+  "main": "script.js",
+  "scripts": {
+    "build": "tailwindcss -i styles.css -o styles.css --minify",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nksoft/Australia-IPTV.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/nksoft/Australia-IPTV/issues"
+  },
+  "homepage": "https://github.com/nksoft/Australia-IPTV#readme",
+  "devDependencies": {
+    "tailwindcss": "^3.4.18"
+  }
+}
