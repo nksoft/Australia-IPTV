@@ -1,2 +1,6 @@
+node_modules
+bun.lock
 tv.json
 .gitignore
+.gitignore.bak
+styles-built.css
