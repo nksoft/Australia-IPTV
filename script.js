@@ -120,12 +120,13 @@ function playChannel(url, name, programHtml) {
     // Destroy existing Hls instance if it exists
     if (hls) {
         hls.destroy();
+        hls = null;
     }
 
-    // Check if HLS is supported natively by the browser
-    if (videoElement.canPlayType('application/vnd.apple.mpegurl') && !Hls.isSupported()) {
-        videoElement.src = url;
-    } else if (Hls.isSupported()) {
+    // Determine if it's an HLS stream
+    const isHLS = url.endsWith('.m3u8');
+
+    if (isHLS && Hls.isSupported()) {
         hls = new Hls();
         hls.on(Hls.Events.MEDIA_ATTACHED, function () {
             hls.loadSource(url);
@@ -141,9 +142,7 @@ function playChannel(url, name, programHtml) {
         hls.on(Hls.Events.ERROR, function (event, data) {
             if (data.fatal) {
                 console.error('HLS Fatal Error:', data.details, data.reason);
-                currentChannelName.textContent = 'Error Loading Stream';
-                currentProgramInfo.textContent = `Could not load stream: ${data.reason}`;
-                currentStreamUrl.innerHTML = `Source: <a href="${url}" target="_blank" class="text-blue-400 hover:underline">${url}</a>`; // Still show the URL in error state
+                combinedInfoDisplay.innerHTML = `<span class="font-semibold text-red-400">Error Loading Stream</span> | Could not load stream: ${data.reason} | <span class="text-gray-400">${url}</span>`;
                 videoElement.classList.remove('animate-pulse');
 
                 if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
@@ -154,12 +153,24 @@ function playChannel(url, name, programHtml) {
                 }
             }
         });
-
+    } else if (isHLS && videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+        // Native HLS support (e.g., Safari)
+        videoElement.src = url;
+        videoElement.play().catch(e => {
+            console.error("Video Playback Error (non-fatal):", e.message);
+            combinedInfoDisplay.innerHTML = `<span class="font-semibold text-red-400">Error Loading Stream</span> | Playback failed | <span class="text-gray-400">${url}</span>`;
+        }).finally(() => {
+            videoElement.classList.remove('animate-pulse');
+        });
     } else {
-        currentChannelName.textContent = 'Playback Not Supported';
-        currentProgramInfo.textContent = 'Your browser does not support HLS streaming.';
-        currentStreamUrl.innerHTML = `Source: <a href="${url}" target="_blank" class="text-blue-400 hover:underline">${url}</a>`;
-        videoElement.classList.remove('animate-pulse');
+        // Non-HLS stream, try direct playback
+        videoElement.src = url;
+        videoElement.play().catch(e => {
+            console.error("Video Playback Error (non-fatal):", e.message);
+            combinedInfoDisplay.innerHTML = `<span class="font-semibold text-red-400">Error Loading Stream</span> | Your browser may not support this format | <span class="text-gray-400">${url}</span>`;
+        }).finally(() => {
+            videoElement.classList.remove('animate-pulse');
+        });
     }
 
     // Update active state in the playlist
@@ -258,7 +269,7 @@ async function fetchPlaylist() {
         }
 
         if (channelArray.length > 0) {
-            channels = channelArray.filter(c => isValidStreamUrl(c.url || c.mjh_master || c.stream));
+            channels = channelArray;
         } else {
             throw new Error("Invalid JSON structure or empty list.");
         }
@@ -275,7 +286,7 @@ async function fetchPlaylist() {
             }
             const plsText = await plsResponse.text();
             const parsedChannels = parsePLS(plsText);
-            channels = parsedChannels.filter(c => isValidStreamUrl(c.url || c.mjh_master || c.stream));
+            channels = parsedChannels;
 
             if (channels.length === 0) {
                 throw new Error("PLS parsing resulted in an empty list.");
