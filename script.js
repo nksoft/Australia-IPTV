@@ -21,6 +21,40 @@ const combinedInfoDisplay = document.getElementById('combined-info-display');
 
 let hls = null;
 let channels = [];
+let favorites = {}; // {region: [urls]}
+
+// Favorites functions
+function loadFavorites() {
+    const stored = localStorage.getItem('iptv-favorites');
+    favorites = stored ? JSON.parse(stored) : {};
+}
+
+function saveFavorites() {
+    localStorage.setItem('iptv-favorites', JSON.stringify(favorites));
+}
+
+function toggleFavorite(url) {
+    if (!favorites[selectedRegion]) favorites[selectedRegion] = [];
+    const index = favorites[selectedRegion].indexOf(url);
+    if (index > -1) {
+        favorites[selectedRegion].splice(index, 1);
+    } else {
+        favorites[selectedRegion].push(url);
+    }
+    saveFavorites();
+    renderFavorites();
+}
+
+function updateStarIcon(icon, url) {
+    const isFav = (favorites[selectedRegion] || []).includes(url);
+    if (isFav) {
+        icon.classList.remove('text-gray-400');
+        icon.classList.add('text-yellow-400', 'fill-current');
+    } else {
+        icon.classList.remove('text-yellow-400', 'fill-current');
+        icon.classList.add('text-gray-400');
+    }
+}
 
 // Function to dynamically generate the playlist URL
 function getPlaylistUrl(region) {
@@ -258,6 +292,7 @@ async function fetchPlaylist() {
 
     loadingIndicator.classList.add('hidden');
     renderPlaylist(channels);
+    renderFavorites();
 }
 
 // Manual PLS parsing
@@ -356,26 +391,27 @@ function createChannelItem(channel) {
     item.className = 'channel-item-container';
 
     item.innerHTML = `
-        <button class="channel-item w-full text-left p-3 rounded-xl transition-all duration-200 ease-in-out hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-blue/70 bg-gray-700/50 text-white truncate" data-url="${url}">
-            <div class="grid grid-cols-5 gap-3">
-                <!-- Logo/Icon (1 column) -->
-                <div class="col-span-1 flex items-center justify-center">
-                    ${logo ?
-                        `<img src="${logo}" class="h-8 w-8 object-contain rounded" alt="${name} Logo" onerror="handleLogoError(this)">`
-                        :
-                        TV_ICON_SVG
-                    }
+        <button class="channel-item flex w-full text-left p-3 rounded-xl transition-all duration-200 ease-in-out hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-blue/70 bg-gray-700/50 text-white" data-url="${url}">
+            <div class="flex items-center flex-1">
+                <!-- Left part: Logo, Name, Program -->
+                <div class="flex items-center space-x-2 flex-1 min-w-0">
+                    <div class="flex-shrink-0">
+                        ${logo ?
+                            `<img src="${logo}" class="h-8 w-8 object-contain rounded" alt="${name} Logo" onerror="handleLogoError(this)">`
+                            :
+                            TV_ICON_SVG
+                        }
+                    </div>
+                    <span class="font-semibold text-sm truncate">${name}</span>
+                    <span class="text-xs text-gray-400 truncate">${currentProgramHtml}</span>
                 </div>
 
-                <!-- Details (4 columns) -->
-                <div class="col-span-4 min-w-0">
-                    <!-- Channel Name -->
-                    <div class="flex items-center space-x-2">
-                        <span class="font-semibold text-sm truncate">${name}</span>
-                    </div>
-                    <!-- Program Info -->
-                    <div class="text-xs text-gray-400 mt-1">${currentProgramHtml}</div>
-                </div>
+                <!-- Star at the right -->
+                <span class="star-btn cursor-pointer flex-shrink-0" data-url="${url}">
+                    <svg class="h-4 w-4 star-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                    </svg>
+                </span>
             </div>
         </button>
     `;
@@ -383,6 +419,91 @@ function createChannelItem(channel) {
     const channelButton = item.querySelector('.channel-item');
     channelButton.addEventListener('click', () => {
         playChannel(url, name, currentProgramHtml);
+    });
+
+    const starBtn = item.querySelector('.star-btn');
+    const starIcon = starBtn.querySelector('.star-icon');
+    starBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavorite(url);
+        updateStarIcon(starIcon, url);
+    });
+    updateStarIcon(starIcon, url);
+
+    return item;
+}
+
+// Render favorites section
+function renderFavorites() {
+    const favList = document.getElementById('favorites-list');
+    favList.innerHTML = '';
+    const favUrls = favorites[selectedRegion] || [];
+    const favChannels = channels.filter(c => favUrls.includes(c.url || c.mjh_master || c.stream));
+    if (favChannels.length === 0) {
+        favList.innerHTML = '<p class="text-xs text-gray-500">No favorites yet.</p>';
+        return;
+    }
+    favChannels.forEach(channel => {
+        const item = createFavoriteItem(channel);
+        favList.appendChild(item);
+    });
+}
+
+function createFavoriteItem(channel) {
+    const name = channel.name || 'Unnamed Channel';
+    const url = channel.url || channel.mjh_master || channel.stream;
+    const logo = channel.logo || null;
+
+    // Get program info
+    const programs = channel.programs;
+    let currentProgramHtml;
+    if (Array.isArray(programs) && programs.length > 0 && Array.isArray(programs[0]) && programs[0].length > 1) {
+        const currentProgram = programs[0][1] || 'Live Program';
+        currentProgramHtml = `<span class="font-bold text-gray-300">Now:</span> ${currentProgram}`;
+    } else {
+        currentProgramHtml = '<span class="italic text-gray-500">Guide information not available</span>';
+    }
+
+    const item = document.createElement('div');
+    item.className = 'favorite-item-container';
+
+    item.innerHTML = `
+        <button class="favorite-item flex w-full text-left p-2 rounded-lg transition-all duration-200 ease-in-out hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-blue/70 bg-gray-600/50 text-white" data-url="${url}">
+            <div class="flex items-center flex-1">
+                <!-- Left part: Logo, Name, Program -->
+                <div class="flex items-center space-x-2 flex-1 min-w-0">
+                    <div class="flex-shrink-0">
+                        ${logo ?
+                            `<img src="${logo}" class="h-6 w-6 object-contain rounded" alt="${name} Logo" onerror="handleLogoError(this)">`
+                            :
+                            TV_ICON_SVG.replace('h-8 w-8', 'h-6 w-6')
+                        }
+                    </div>
+                    <span class="font-semibold text-sm truncate">${name}</span>
+                    <span class="text-xs text-gray-400 truncate">${currentProgramHtml}</span>
+                </div>
+
+                <!-- Star at the right -->
+                <span class="star-btn cursor-pointer flex-shrink-0" data-url="${url}">
+                    <svg class="h-4 w-4 star-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                    </svg>
+                </span>
+            </div>
+        </button>
+    `;
+
+    const button = item.querySelector('.favorite-item');
+    button.addEventListener('click', () => {
+        playChannel(url, name, currentProgramHtml);
+    });
+
+    const starBtn = item.querySelector('.star-btn');
+    const starIcon = starBtn.querySelector('.star-icon');
+    updateStarIcon(starIcon, url); // Should be yellow since it's favorite
+    starBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavorite(url);
     });
 
     return item;
@@ -421,10 +542,11 @@ function setupRegionSelector() {
 // Initialize the app when the window loads
 window.onload = function() {
     const scrollToTopBtn = document.getElementById('scroll-to-top-btn');
+    const scrollableContent = document.getElementById('scrollable-content');
 
     // Show/hide scroll to top button based on scroll position
-    playlistContainer.addEventListener('scroll', () => {
-        if (playlistContainer.scrollTop > 200) { // Show button after scrolling 200px
+    scrollableContent.addEventListener('scroll', () => {
+        if (scrollableContent.scrollTop > 200) { // Show button after scrolling 200px
             scrollToTopBtn.classList.remove('hidden');
         } else {
             scrollToTopBtn.classList.add('hidden');
@@ -433,7 +555,7 @@ window.onload = function() {
 
     // Scroll to top when button is clicked
     scrollToTopBtn.addEventListener('click', () => {
-        playlistContainer.scrollTo({
+        scrollableContent.scrollTo({
             top: 0,
             behavior: 'smooth'
         });
@@ -455,8 +577,12 @@ window.onload = function() {
         } else {
             renderPlaylist(channels);
         }
+        renderFavorites();
     });
 
-    // 3. Load the initial playlist
+    // 3. Load favorites
+    loadFavorites();
+
+    // 4. Load the initial playlist
     fetchPlaylist();
 };
