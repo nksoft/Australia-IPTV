@@ -54,3 +54,21 @@
 
 **Remaining Issues:**
 - None
+
+## Current Session Progress
+
+**Goal:** Fix horizontal overflow of channel list items on mobile devices by limiting the display of program information.
+
+**Key Decisions:**
+- Hide program info (e.g., "Now: Show Name") on screens narrower than 768px to save space and prevent overflow.
+- Use JavaScript for responsive hiding since CSS media queries had issues with dynamic classes.
+- Update CSS build process to use src/styles.css as input for proper inclusion of custom styles.
+
+**Work Completed:**
+- Added JavaScript to detect screen width and hide program info spans on mobile.
+- Fixed CSS build by creating src/styles.css and updating package.json.
+- Restored dark background and custom scrollbar styles.
+- Improved AGENTS.md with updated build commands and code style guidelines.
+
+**Remaining Issues:**
+- None

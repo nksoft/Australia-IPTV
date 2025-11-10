@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Build/Lint/Test Commands
-- Build CSS: `npm run build` or `npx tailwindcss -i styles.css -o styles.css --minify` (requires Node.js and Tailwind CSS installed)
+- Build CSS: `npm run build` or `npx tailwindcss -i src/styles.css -o styles.css --minify` (requires Node.js and Tailwind CSS installed)
 - No linting; add ESLint: `npx eslint script.js` (configure for ES6, browser env).
 - No tests; add Jest: `npm init -y && npm install --save-dev jest` then `npx jest` or `npx jest --testNamePattern="test name"` for single test.
 

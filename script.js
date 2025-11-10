@@ -585,4 +585,14 @@ window.onload = function() {
 
     // 4. Load the initial playlist
     fetchPlaylist();
+
+    // Hide program info on mobile to prevent overflow
+    function hideProgramInfoOnMobile() {
+        const isMobile = window.innerWidth < 768;
+        document.querySelectorAll('.channel-item .text-xs.text-gray-400, .favorite-item .text-xs.text-gray-400').forEach(span => {
+            span.style.display = isMobile ? 'none' : '';
+        });
+    }
+    hideProgramInfoOnMobile();
+    window.addEventListener('resize', hideProgramInfoOnMobile);
 };

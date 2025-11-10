@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+body {
+  background-color: #111827;
+}
+
+/* Custom scrollbar styles */
+.playlist-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #1f2937;
+}
+
+.playlist-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.playlist-scroll::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.playlist-scroll::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+.playlist-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
